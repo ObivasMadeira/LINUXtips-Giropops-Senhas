@@ -1,0 +1,22 @@
+#Build Stage
+FROM golang:1.18 AS build
+# Instala o pip
+RUN apt-get update && apt-get install -y python3-pip
+# Define o diretório de trabalho dentro do contêiner
+WORKDIR /app
+# Copia os arquivos do código fonte para o diretório de trabalho no contêiner
+COPY . .
+# Compila o código Go
+RUN go build -o app .
+# Instala as dependências Python
+RUN pip install --no-cache-dir -r requirements.txt
+# Stage 2
+FROM golang:1.18
+# Define o diretório de trabalho dentro do contêiner
+WORKDIR /app
+# Copia o binário compilado do estágio de construção para o diretório de trabalho no contêiner
+COPY --from=build /app/app .
+# Instala o Flask
+RUN pip install Flask
+# Comando para executar a aplicação quando o contêiner for iniciado
+CMD ["flask", "run", "--host=0.0.0.0"]
